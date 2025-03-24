@@ -63,111 +63,116 @@ const updateRecipe = async (req, res) => {
 
 // Enhanced Recept scraping with dynamic selector and structured data extraction
 const scrapeRecipe = async (link) => {
-  try {
-    const { data } = await axios.get(link);
-    const $ = cheerio.load(data);
-
-    let recipeText = '';
-    let ingredients = '';
-    let instructions = '';
-    let directions = ''; // Added directions variable
-
-    // Check for structured data using JSON-LD (schema.org)
-    const structuredData = $('script[type="application/ld+json"]').html();
-    if (structuredData) {
-      const jsonData = JSON.parse(structuredData);
-      if (jsonData['@type'] === 'Recipe') {
-        // Extract structured data (if available)
-        recipeText += `Title: ${jsonData.name}\n`;
-        ingredients = jsonData.recipeIngredient.join(', ');
-        instructions = jsonData.recipeInstructions.map((step) => step.text).join('\n');
-        directions = jsonData.recipeInstructions.map((step) => step.text).join('\n'); // Added structured data for directions
-      }
-    }
-
-    // If no structured data, try scraping using common patterns and selectors
-    if (!ingredients || !instructions || !directions) {
-      const possibleSelectors = [
-        'article',
-        'div.recipe-text',
-        'div#recipe',
-        'div.entry-content',
-        'section.recipe',
-        'div.recipe-container',
-        'div.instructions', // Instructions section
-        'div.method', // Instructions section
-        'div#ingredients', // Ingredients section
-        'div.directions', // Added directions section
-        'div.recipe-steps', // Another potential directions section
-        'section.directions', // Directions in a section tag
-        'div#directions',
-      ];
-
-      for (const selector of possibleSelectors) {
-        if ($(selector).length > 0) {
-          recipeText = $(selector).text().trim();
-          break;
+    try {
+      const { data } = await axios.get(link);
+      const $ = cheerio.load(data);
+  
+      let recipeText = '';
+      let ingredients = '';
+      let instructions = '';
+      let directions = ''; // Added directions variable
+  
+      // Check for structured data using JSON-LD (schema.org)
+      const structuredData = $('script[type="application/ld+json"]').html();
+      if (structuredData) {
+        const jsonData = JSON.parse(structuredData);
+        if (jsonData['@type'] === 'Recipe') {
+          // Extract structured data (if available)
+          recipeText += `Title: ${jsonData.name}\n`;
+          ingredients = jsonData.recipeIngredient.join(', ');
+          instructions = jsonData.recipeInstructions.map((step) => step.text).join('\n');
+          directions = jsonData.recipeInstructions.map((step) => step.text).join('\n'); // Added structured data for directions
         }
       }
-
-      // Look for ingredients section if not found
-      if (!ingredients) {
-        ingredients = $('h2:contains(Ingredients), h3:contains(Ingredients), h2:contains(Hozzávalók), h3:contains(Hozzávalók)').next().text().trim();
-        if (!ingredients) {
-          ingredients = $('ul.ingredients, ul.list-ingredients, .ingredients-list').text().trim();
-        }
-      }
-
-      // Look for instructions section if not found
-      if (!instructions) {
-        instructions = $('h2:contains(Instructions), h3:contains(Instructions), h2:contains(Utmutató), h3:contains(Utmutató), h2:contains(Elkészítés), h3:contains(Elkészítés)').next().text().trim();
-        if (!instructions) {
-          instructions = $('div.instructions, div.method, div.directions, div.preparation').text().trim();
-        }
-      }
-
-      // Look for directions section if not found
-      if (!directions) {
-        directions = $('h2:contains(Directions), h3:contains(Directions), h2:contains(Módszer), h3:contains(Módszer), h2:contains(Elkészítési lépések), h3:contains(Elkészítési lépések)').next().text().trim();
-        if (!directions) {
-          directions = $('div.directions, section.directions, div.recipe-steps').text().trim();
-        }
-      }
-
-      // If no specific sections found, try generic headings
-      const headings = ['Ingredients', 'Instructions', 'Directions', 'Preparation', 'Method', 'Hozzávalók', 'Elkészítés', 'Módszer', 'Elkészítési lépések'];
-      headings.forEach((heading) => {
-        const section = $(`h2:contains(${heading}), h3:contains(${heading})`).next();
-        if (section.length > 0) {
-          if (heading.toLowerCase().includes('ingredient') || heading.toLowerCase().includes('hozzávaló')) {
-            ingredients = section.text().trim();
-          } else if (heading.toLowerCase().includes('direction') || heading.toLowerCase().includes('módszer') || heading.toLowerCase().includes('lépés')) {
-            directions = section.text().trim();
-          } else {
-            instructions = section.text().trim();
+  
+      // If no structured data, try scraping using common patterns and selectors
+      if (!ingredients || !instructions || !directions) {
+        const possibleSelectors = [
+          'article', 
+          'div.recipe-text', 
+          'div#recipe', 
+          'div.entry-content', 
+          'section.recipe', 
+          'div.recipe-container',
+          'div.instructions', // Instructions section
+          'div.method', // Instructions section
+          'div#ingredients', // Ingredients section
+          'div.directions', // Added directions section
+          'div.recipe-steps', // Another potential directions section
+          'section.directions', // Directions in a section tag
+          'div#directions',
+          '.p-recipe__directions', // Updated selector for the new structure
+        ];
+  
+        for (const selector of possibleSelectors) {
+          if ($(selector).length > 0) {
+            recipeText = $(selector).text().trim();
+            break;
           }
         }
-      });
+  
+        // Look for ingredients section if not found
+        if (!ingredients) {
+          ingredients = $('h2:contains(Ingredients), h3:contains(Ingredients), h2:contains(Hozzávalók), h3:contains(Hozzávalók)').next().text().trim();
+          if (!ingredients) {
+            ingredients = $('ul.ingredients, ul.list-ingredients, .ingredients-list').text().trim();
+          }
+        }
+  
+        // Look for instructions section if not found
+        if (!instructions) {
+          instructions = $('h2:contains(Instructions), h3:contains(Instructions), h2:contains(Utmutató), h3:contains(Utmutató), h2:contains(Elkészítés), h3:contains(Elkészítés)').next().text().trim();
+          if (!instructions) {
+            instructions = $('div.instructions, div.method, div.directions, div.preparation').text().trim();
+          }
+        }
+  
+        // Look for directions section if not found
+        if (!directions) {
+          directions = $('.p-recipe__directions .m-list__list').text().trim(); // Updated for specific class
+          if (!directions) {
+            directions = $('h2:contains(Directions), h3:contains(Directions), h2:contains(Módszer), h3:contains(Módszer), h2:contains(Elkészítési lépések), h3:contains(Elkészítési lépések)').next().text().trim();
+            if (!directions) {
+              directions = $('div.directions, section.directions, div.recipe-steps').text().trim();
+            }
+          }
+        }
+  
+        // If no specific sections found, try generic headings
+        const headings = ['Ingredients', 'Instructions', 'Directions', 'Preparation', 'Method', 'Hozzávalók', 'Elkészítés', 'Módszer', 'Elkészítési lépések'];
+        headings.forEach((heading) => {
+          const section = $(`h2:contains(${heading}), h3:contains(${heading})`).next();
+          if (section.length > 0) {
+            if (heading.toLowerCase().includes('ingredient') || heading.toLowerCase().includes('hozzávaló')) {
+              ingredients = section.text().trim();
+            } else if (heading.toLowerCase().includes('direction') || heading.toLowerCase().includes('módszer') || heading.toLowerCase().includes('lépés')) {
+              directions = section.text().trim();
+            } else {
+              instructions = section.text().trim();
+            }
+          }
+        });
+      }
+  
+      // Clean up the recipe text
+      recipeText = recipeText.replace(/\s+/g, ' ').trim();
+  
+      // Combine everything into one string
+      const recipeString = `
+        Title: ${$('h1, h2').first().text().trim() || 'Unknown Recipe Title'}
+        Ingredients: ${ingredients || 'Ingredients not found'}
+        Instructions: ${instructions || 'Instructions not found'}
+        Directions: ${directions || 'Directions not found'}
+        Full Text: ${recipeText || 'Recipe text not found'}
+      `;
+  
+      return recipeString.trim();
+  
+    } catch (err) {
+      console.error('Error scraping the recipe:', err);
+      throw new Error('Hiba történt a recept szövegének begyűjtésekor.');
     }
-
-    // Clean up the recipe text
-    recipeText = recipeText.replace(/\s+/g, ' ').trim();
-
-    // Combine everything into one string
-    const recipeString = `
-      Title: ${$('h1, h2').first().text().trim() || 'Unknown Recipe Title'}
-      Ingredients: ${ingredients || 'Ingredients not found'}
-      Instructions: ${instructions || 'Instructions not found'}
-      Directions: ${directions || 'Directions not found'}
-      Full Text: ${recipeText || 'Recipe text not found'}
-    `;
-
-    return recipeString.trim();
-
-  } catch (err) {
-    console.error('Error scraping the recipe:', err);
-    throw new Error('Hiba történt a recept szövegének begyűjtésekor.');
-  }
-};
+  };
+  
 
 module.exports = { getRecipes, addRecipe, updateRecipe };
