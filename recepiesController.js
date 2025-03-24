@@ -74,12 +74,12 @@ const addRecipe = async (req, res) => {
 // Recept frissítése
 const updateRecipe = async (req, res) => {
   const { id } = req.params;
-  const { name, body } = req.body;
+  const { body } = req.body;
 
   try {
     const result = await pool.query(
-      'UPDATE recipes SET name = $1, body = $2 WHERE id = $3 RETURNING *',
-      [name, body, id]
+      'UPDATE recipes SET body = $1 WHERE id = $2 RETURNING *',
+      [body, id]
     );
 
     if (result.rows.length === 0) {
