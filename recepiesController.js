@@ -100,6 +100,7 @@ const scrapeRecipe = async (link) => {
           'div.directions', // Added directions section
           'div.recipe-steps', // Another potential directions section
           'section.directions', // Directions in a section tag
+          'div#directions',
         ];
   
         for (const selector of possibleSelectors) {
