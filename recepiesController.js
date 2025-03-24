@@ -84,14 +84,13 @@ const scrapeRecipe = async (link) => {
   
       // If no structured data, try scraping using common patterns and selectors
       if (!ingredients || !instructions) {
-        // 1. Try using common selectors for recipes
         const possibleSelectors = [
-          'article', // General article-based content
-          'div.recipe-text', // Common class used for recipe content
-          'div#recipe', // Specific div with id "recipe"
-          'div.entry-content', // Wordpress often uses this for recipe posts
-          'section.recipe', // Section that contains recipe
-          'div.recipe-container', // Some websites use a container class for recipes
+          'article', 
+          'div.recipe-text', 
+          'div#recipe', 
+          'div.entry-content', 
+          'section.recipe', 
+          'div.recipe-container',
         ];
   
         for (const selector of possibleSelectors) {
@@ -101,12 +100,12 @@ const scrapeRecipe = async (link) => {
           }
         }
   
-        // 2. Look for ingredients section if not found
+        // Look for ingredients section if not found
         if (!ingredients) {
           ingredients = $('h2:contains(Ingredients), h3:contains(Ingredients)').next().text().trim();
         }
   
-        // 3. Look for instructions section if not found
+        // Look for instructions section if not found
         if (!instructions) {
           instructions = $('h2:contains(Instructions), h3:contains(Instructions)').next().text().trim();
         }
@@ -127,21 +126,24 @@ const scrapeRecipe = async (link) => {
         }
       }
   
-      // Clean up the recipe text by removing excessive whitespace
+      // Clean up the recipe text
       recipeText = recipeText.replace(/\s+/g, ' ').trim();
   
-      // Return a combined recipe
-      return {
-        title: $('h1, h2').first().text().trim() || 'Unknown Recipe Title',
-        ingredients: ingredients || 'Ingredients not found',
-        instructions: instructions || 'Instructions not found',
-        fullText: recipeText || 'Recipe text not found'
-      };
+      // Combine everything into one string
+      const recipeString = `
+        Title: ${$('h1, h2').first().text().trim() || 'Unknown Recipe Title'}
+        Ingredients: ${ingredients || 'Ingredients not found'}
+        Instructions: ${instructions || 'Instructions not found'}
+        Full Text: ${recipeText || 'Recipe text not found'}
+      `;
+  
+      return recipeString.trim();
   
     } catch (err) {
       console.error('Error scraping the recipe:', err);
       throw new Error('Hiba történt a recept szövegének begyűjtésekor.');
     }
   };
+  
 
 module.exports = { getRecipes, addRecipe, updateRecipe };
