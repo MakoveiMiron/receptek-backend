@@ -70,57 +70,33 @@ const scrapeRecipe = async (link) => {
       let recipeText = '';
       let ingredients = '';
       let instructions = '';
-      let directions = ''; // A directions szekció elkülönítése
+      let directions = '';
   
-      // Megpróbáljuk a szokásos JSON-LD adatokat először, ha léteznek
-      const structuredData = $('script[type="application/ld+json"]').html();
-      if (structuredData) {
-        const jsonData = JSON.parse(structuredData);
-        if (jsonData['@type'] === 'Recipe') {
-          recipeText += `Title: ${jsonData.name}\n`;
-          ingredients = jsonData.recipeIngredient.join(', ');
-          instructions = jsonData.recipeInstructions.map((step) => step.text).join('\n');
-          directions = jsonData.recipeInstructions.map((step) => step.text).join('\n'); // Structured data directions
-        }
+      // Megpróbáljuk a cím kinyerését
+      const title = $('h1, h2').first().text().trim();
+      if (title) {
+        recipeText += `Title: ${title}\n`;
+      } else {
+        recipeText += 'Title: Unknown Recipe Title\n';
       }
   
-      // Ha nincs strukturált adat, próbálkozzunk a manuális szűréssel
-      if (!ingredients || !instructions || !directions) {
-        // Szelektorok a különböző részletekhez
-        const directionsSelector = '.p-recipe__directions .m-list__list';  // Az új struktúra
-  
-        // Directions (Elkészítés) kinyerése
-        if ($(directionsSelector).length > 0) {
-          directions = $(directionsSelector).map((i, el) => $(el).text().trim()).get().join('\n');
-        }
-  
-        // Ingredients (Hozzávalók) keresése
-        const ingredientsSelector = '.recipe-ingredients, .ingredients-list, .ingredients';
-        if ($(ingredientsSelector).length > 0) {
-          ingredients = $(ingredientsSelector).map((i, el) => $(el).text().trim()).get().join(', ');
-        }
-  
-        // Instructions (Elkészítési utasítások) keresése
-        const instructionsSelector = '.recipe-instructions, .instructions, .method';
-        if ($(instructionsSelector).length > 0) {
-          instructions = $(instructionsSelector).map((i, el) => $(el).text().trim()).get().join('\n');
-        }
+      // Hozzávalók kinyerése
+      const ingredientsSelector = '.recipe-ingredients, .ingredients-list, .ingredients';
+      if ($(ingredientsSelector).length > 0) {
+        ingredients = $(ingredientsSelector).map((i, el) => $(el).text().trim()).get().join(', ');
+      } else {
+        ingredients = $('ul.ingredients, ul.list-ingredients').text().trim();
       }
   
-      // Ha semmit nem találtunk, próbáljuk meg a közönséges szöveget
-      if (!directions) {
-        directions = $('.p-recipe__directions').text().trim();
+      // Instructions kinyerése (Elkészítési utasítások)
+      const instructionsSelector = '.p-recipe__directions .m-list__list';
+      if ($(instructionsSelector).length > 0) {
+        instructions = $(instructionsSelector).map((i, el) => $(el).text().trim()).get().join('\n');
       }
   
-      if (!ingredients) {
-        ingredients = $('h2:contains(Hozzávalók), h3:contains(Hozzávalók)').next().text().trim();
-        if (!ingredients) {
-          ingredients = $('ul.ingredients, ul.list-ingredients').text().trim();
-        }
-      }
-  
+      // Directions kinyerése (Elkészítési lépések)
       if (!instructions) {
-        instructions = $('h2:contains(Elkészítés), h3:contains(Elkészítés)').next().text().trim();
+        directions = $('.p-recipe__directions').text().trim();
       }
   
       // Ha nem találunk semmit, próbáljuk meg a teljes szöveget kinyerni
@@ -128,9 +104,9 @@ const scrapeRecipe = async (link) => {
         recipeText = $('article, .recipe-text, .entry-content').text().trim();
       }
   
-      // A végső eredmény összefűzése
+      // Visszaadjuk az összes összegyűjtött adatot
       const recipeString = `
-        Title: ${$('h1, h2').first().text().trim() || 'Unknown Recipe Title'}
+        Title: ${title || 'Unknown Recipe Title'}
         Ingredients: ${ingredients || 'Ingredients not found'}
         Instructions: ${instructions || 'Instructions not found'}
         Directions: ${directions || 'Directions not found'}
