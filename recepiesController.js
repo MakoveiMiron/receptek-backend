@@ -1,6 +1,9 @@
-const pool = require('./index');
 const axios = require('axios');
 const cheerio = require('cheerio');
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
+});
 
 // Recept lista lekérdezése
 const getRecipes = async (req, res) => {
