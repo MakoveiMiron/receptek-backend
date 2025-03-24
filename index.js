@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
 const bodyParser = require('body-parser');
-const { getRecipes, addRecipe, updateRecipe } = require('./recipesController');
+const { getRecipes, addRecipe, updateRecipe } = require('./recepiesController');
 require('dotenv').config();
 
 const app = express();
