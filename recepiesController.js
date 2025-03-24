@@ -97,62 +97,27 @@ const updateRecipe = async (req, res) => {
 
 // Enhanced Recept scraping with dynamic selector and structured data extraction
 const scrapeRecipe = async (link) => {
-  try {
-    const { data } = await axios.get(link);
-    const $ = cheerio.load(data);
-
-    let recipeText = '';
-    let ingredients = '';
-    let instructions = '';
-    let directions = '';
-
-    // Megpróbáljuk a cím kinyerését
-    const title = $('h1, h2').first().text().trim();
-    if (title) {
-      recipeText += `Title: ${title}\n`;
-    } else {
-      recipeText += 'Title: Unknown Recipe Title\n';
+    try {
+      const { data } = await axios.get(link);
+      const $ = cheerio.load(data);
+  
+      // Initialize a variable to store all the text on the page
+      let fullPageText = '';
+  
+      // Scrape all visible text from the page by selecting the body content
+      // This will grab all text nodes in the body element, you can tweak the selector if needed
+      $('body').each((i, el) => {
+        fullPageText += $(el).text().trim() + ' ';
+      });
+  
+      // Return all the text collected from the page
+      return fullPageText.trim();
+  
+    } catch (err) {
+      console.error('Error scraping the recipe:', err);
+      throw new Error('Error occurred while scraping the recipe text.');
     }
-
-    // Hozzávalók kinyerése
-    const ingredientsSelector = '.recipe-ingredients, .ingredients-list, .ingredients';
-    if ($(ingredientsSelector).length > 0) {
-      ingredients = $(ingredientsSelector).map((i, el) => $(el).text().trim()).get().join(', ');
-    } else {
-      ingredients = $('ul.ingredients, ul.list-ingredients').text().trim();
-    }
-
-    // Instructions kinyerése (Elkészítési utasítások)
-    const instructionsSelector = '.p-recipe__directions .m-list__list';
-    if ($(instructionsSelector).length > 0) {
-      instructions = $(instructionsSelector).map((i, el) => $(el).text().trim()).get().join('\n');
-    }
-
-    // Directions kinyerése (Elkészítési lépések)
-    if (!instructions) {
-      directions = $('.p-recipe__directions').text().trim();
-    }
-
-    // Ha nem találunk semmit, próbáljuk meg a teljes szöveget kinyerni
-    if (!recipeText) {
-      recipeText = $('article, .recipe-text, .entry-content').text().trim();
-    }
-
-    // Visszaadjuk az összes összegyűjtött adatot
-    const recipeString = `
-      Title: ${title || 'Unknown Recipe Title'}
-      Ingredients: ${ingredients || 'Ingredients not found'}
-      Instructions: ${instructions || 'Instructions not found'}
-      Directions: ${directions || 'Directions not found'}
-      Full Text: ${recipeText || 'Recipe text not found'}
-    `;
-
-    return recipeString.trim();
-
-  } catch (err) {
-    console.error('Error scraping the recipe:', err);
-    throw new Error('Hiba történt a recept szövegének begyűjtésekor.');
-  }
-};
+  };
+  
 
 module.exports = { getRecipes, addRecipe, updateRecipe };
