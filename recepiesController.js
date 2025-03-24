@@ -1,4 +1,4 @@
-const pool = require('./index');
+const pool = require('./index.js');
 const axios = require('axios');
 const cheerio = require('cheerio');
 
