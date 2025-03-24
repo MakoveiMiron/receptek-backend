@@ -26,7 +26,7 @@ const generateTextWithGemini = async (text) => {
 3. Instructions (Steps)
 
 Please return the relevant sections of the recipe text AND ONLY THE TEXT OF THE RECIPE.
-NO FILLER WORDS? NO "OKAY HERE IT IS: ..." JUST THE EXTRACTED RECIPE
+NO FILLER WORDS? NO "OKAY HERE IT IS: ..." JUST THE EXTRACTED RECIPE AND MAKE IT NICE AND STRUCTURED! THIS IS VERY IMPORTANT
 
 Text:
 ${text}`;
