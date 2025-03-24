@@ -92,6 +92,9 @@ const scrapeRecipe = async (link) => {
           'div.entry-content', 
           'section.recipe', 
           'div.recipe-container',
+          'div.instructions', // Additional common selector
+          'div.method', // Instructions might be listed here
+          'div#ingredients', // Try more targeted selectors
         ];
   
         for (const selector of possibleSelectors) {
@@ -103,21 +106,29 @@ const scrapeRecipe = async (link) => {
   
         // Look for ingredients section if not found
         if (!ingredients) {
-          ingredients = $('h2:contains(Ingredients), h3:contains(Ingredients)').next().text().trim();
+          // Try finding ingredients in common sections or headings
+          ingredients = $('h2:contains(Ingredients), h3:contains(Ingredients), h2:contains(Hozzávalók), h3:contains(Hozzávalók)').next().text().trim();
+          if (!ingredients) {
+            ingredients = $('ul.ingredients, ul.list-ingredients, .ingredients-list').text().trim();
+          }
         }
   
         // Look for instructions section if not found
         if (!instructions) {
-          instructions = $('h2:contains(Instructions), h3:contains(Instructions)').next().text().trim();
+          // Try looking for instruction headings in both languages
+          instructions = $('h2:contains(Instructions), h3:contains(Instructions), h2:contains(Utmutató), h3:contains(Utmutató), h2:contains(Elkészítés), h3:contains(Elkészítés)').next().text().trim();
+          if (!instructions) {
+            instructions = $('div.instructions, div.method, div.directions, div.preparation').text().trim();
+          }
         }
   
         // If no specific sections found, try generic headings
         if (!ingredients || !instructions) {
-          const headings = ['Ingredients', 'Instructions', 'Directions', 'Preparation', 'Method'];
+          const headings = ['Ingredients', 'Instructions', 'Directions', 'Preparation', 'Method', 'Hozzávalók', 'Elkészítés'];
           headings.forEach((heading) => {
             const section = $(`h2:contains(${heading}), h3:contains(${heading})`).next();
             if (section.length > 0) {
-              if (heading.toLowerCase().includes('ingredient')) {
+              if (heading.toLowerCase().includes('ingredient') || heading.toLowerCase().includes('hozzávaló')) {
                 ingredients = section.text().trim();
               } else {
                 instructions = section.text().trim();
@@ -145,6 +156,7 @@ const scrapeRecipe = async (link) => {
       throw new Error('Hiba történt a recept szövegének begyűjtésekor.');
     }
   };
+  
   
 
 module.exports = { getRecipes, addRecipe, updateRecipe };
