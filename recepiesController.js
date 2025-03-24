@@ -17,19 +17,17 @@ const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 // Function to generate text with Google Gemini API
 const generateTextWithGemini = async (text) => {
   try {
-    const prompt = `Please extract the following recipe-related information from the given text:
+    const prompt = `Extract ONLY the recipe-related information from the following text:
 
 1. Recipe Title
-
 2. Ingredients List
-
 3. Instructions (Steps)
 
-Please return the relevant sections of the recipe text AND ONLY THE TEXT OF THE RECIPE.
-NO FILLER WORDS? NO "OKAY HERE IT IS: ..." JUST THE EXTRACTED RECIPE AND MAKE IT NICE AND STRUCTURED! THIS IS VERY IMPORTANT
+Return ONLY the extracted recipe text. DO NOT include anything else. NO filler, NO extra commentary, NO explanations—ONLY the relevant recipe text.
 
 Text:
-${text}`;
+${text}
+`;
     const result = await model.generateContent(prompt);
     return result.response.text();
   } catch (error) {
