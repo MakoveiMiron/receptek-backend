@@ -12,8 +12,13 @@ const pool = new Pool({
 });
 
 // Middleware
-app.use(cors());
-app.use(bodyParser.json());
+app.use(cors({
+    origin: 'https://makoveimiron.github.io', // Adjust this based on your frontend's URL
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true
+  }));
+app.use(express.json());
 
 // Routes
 app.get('/recipes', getRecipes);
