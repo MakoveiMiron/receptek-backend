@@ -8,7 +8,7 @@ const pool = new Pool({
 });
 
 // Replace with your actual Gemini API key
-const GEMINI_API_KEY = 'AIzaSyCRnM8rw3UqAi9IU2zKpsOH08oKVM2-MJs';
+const GEMINI_API_KEY = 'AIzaSyAJdgFm8q-e9OMJFEpL6BFlEphyLPytcG0';
 
 // Initialize Google Generative AI
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
