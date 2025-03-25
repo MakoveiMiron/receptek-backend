@@ -24,7 +24,9 @@ const generateTextWithGemini = async (text) => {
 3. Instructions (Steps)
 
 Return ONLY the extracted recipe text. DO NOT include anything else. NO filler, NO extra commentary, NO explanations—ONLY the relevant recipe text.
-
+If there is special numbers in it like: "⅓" then USE instead: "1/3" (of course use the numbers in the original).
+Te text SHOULD BE in HUNGARIAN even if its originally english.
+At all times it should start with the name of the meal.
 Text:
 ${text}
 `;
