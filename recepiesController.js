@@ -27,6 +27,7 @@ Return ONLY the extracted recipe text. DO NOT include anything else. NO filler, 
 If there is special numbers in it like: "⅓" then USE instead: "1/3" (of course use the numbers in the original).
 Te text SHOULD BE in HUNGARIAN even if its originally english.
 At all times it should start with the name of the meal.
+If the recipe contains NOT metric unit of measures then CONVERT it into the appropriate metric unit of measure.
 Text:
 ${text}
 `;
