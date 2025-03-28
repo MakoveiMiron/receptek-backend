@@ -18,6 +18,9 @@ app.use(cors({
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true
   }));
+
+app.options('*', cors()); // Engedélyez minden preflight kérést
+
 app.use(express.json());
 
 // Routes
